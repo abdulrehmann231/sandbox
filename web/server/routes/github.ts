@@ -271,6 +271,7 @@ export const githubRouter = createRouter()
       const githubManager = c.get("manager")
       const userId = c.get("user").id
       const { projectId } = c.req.valid("json")
+      let project: Project | null = null
       try {
         // Fetch sandbox data
         const sandbox = await db.query.sandbox.findFirst({
@@ -342,9 +343,25 @@ export const githubRouter = createRouter()
             )
           )
 
-        // Create initial commit
+        // Pull the README.md that GitHub auto-created
         const project = new Project(projectId)
         await project.initialize()
+
+        // Get the README.md file that GitHub created
+        const githubFiles = await githubManager.getLatestFiles(id)
+        const readmeFile = githubFiles.find((file) => file.path === "README.md")
+
+        if (readmeFile && project.fileManager) {
+          // Add the README.md to the local filesystem
+          await project.fileManager.writeFileByPath(
+            "/home/user/project/README.md",
+            readmeFile.content
+          )
+          // Refresh file tree to include the new README.md
+          await project.fileManager.getFileTree()
+        }
+
+        // Create initial commit with all local files
         const files = await collectFilesForCommit(project)
         if (files.length === 0) {
           return c.json(
@@ -395,6 +412,11 @@ export const githubRouter = createRouter()
           },
           500
         )
+      } finally {
+        // Clean up project resources
+        if (project !== null) {
+          await project.disconnect()
+        }
       }
     }
   )
