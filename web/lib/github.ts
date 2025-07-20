@@ -491,6 +491,103 @@ export class GitHubManager {
   }
 
   /**
+   * Gets files from a specific commit in a GitHub repository
+   * @param repoId - GitHub repository ID
+   * @param commitSha - Specific commit SHA
+   * @returns Array of file objects with path and content
+   */
+  async getFilesFromCommit(
+    repoId: string,
+    commitSha: string
+  ): Promise<Array<{ path: string; content: string }>> {
+    try {
+      const repoInfo = await this.repoExistsByID(repoId)
+      if (!repoInfo.exists) {
+        throw new Error("Repository not found")
+      }
+
+      // Get the commit details
+      const commitResponse = await this.octokit.request(
+        "GET /repos/{owner}/{repo}/git/commits/{commit_sha}",
+        {
+          owner: this.username,
+          repo: repoInfo.repoName,
+          commit_sha: commitSha,
+        }
+      )
+
+      const commit = commitResponse?.data
+      if (!commit || !commit.tree) {
+        throw new Error("Failed to fetch commit details.")
+      }
+
+      // Get the tree
+      const treeResponse = await this.octokit.request(
+        "GET /repos/{owner}/{repo}/git/trees/{tree_sha}?recursive=1",
+        {
+          owner: this.username,
+          repo: repoInfo.repoName,
+          tree_sha: commit.tree.sha,
+        }
+      )
+
+      const tree = treeResponse?.data
+      if (!tree || !tree.tree) {
+        throw new Error("Failed to fetch repository tree.")
+      }
+
+      // Filter out directories and get file contents
+      const files = tree.tree.filter((item: any) => item.type === "blob")
+      const fileContents: Array<{ path: string; content: string }> = []
+
+      // Process files in batches to avoid rate limits
+      const batchSize = 10
+      for (let i = 0; i < files.length; i += batchSize) {
+        const batch = files.slice(i, i + batchSize)
+
+        await Promise.all(
+          batch.map(async (file: any) => {
+            try {
+              const blobResponse = await this.octokit.request(
+                "GET /repos/{owner}/{repo}/git/blobs/{file_sha}",
+                {
+                  owner: this.username,
+                  repo: repoInfo.repoName,
+                  file_sha: file.sha,
+                }
+              )
+
+              const blob = blobResponse?.data
+              if (blob && blob.content) {
+                // Decode base64 content
+                const content = Buffer.from(blob.content, "base64").toString(
+                  "utf-8"
+                )
+                fileContents.push({
+                  path: file.path,
+                  content,
+                })
+              }
+            } catch (error) {
+              console.error(`Failed to fetch file ${file.path}:`, error)
+            }
+          })
+        )
+
+        // Add delay between batches to respect rate limits
+        if (i + batchSize < files.length) {
+          await new Promise((resolve) => setTimeout(resolve, 1000))
+        }
+      }
+
+      return fileContents
+    } catch (error) {
+      console.error("Error getting files from commit:", error)
+      throw error
+    }
+  }
+
+  /**
    * Removes a repository by its GitHub repository ID
    * @param repoId - GitHub repository ID to remove
    * @returns Object indicating success of the removal operation
