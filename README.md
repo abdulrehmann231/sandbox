@@ -1,8 +1,8 @@
-# GitWit Sandbox 📦🪄
+# GitWit 📦🪄
 
 ![Screenshot 2025-06-26 at 7 45 45 PM](https://github.com/user-attachments/assets/dbb5f9e9-1407-4e28-bc3f-14e2db0ef03d)
 
-Sandbox is an open-source cloud-based code editing environment with custom AI code generation, live preview, real-time collaboration, and AI chat.
+GitWit is an open-source cloud-based code editing environment with custom AI code generation, live preview, real-time collaboration, and AI chat.
 
 For the latest updates, join our Discord server: [discord.gitwit.dev](https://discord.gitwit.dev/).
 
@@ -22,8 +22,8 @@ A quick overview of the tech before we start: The deployment uses a **NextJS** a
 No surprise in the first step:
 
 ```bash
-git clone https://github.com/jamesmurdza/sandbox
-cd sandbox
+git clone https://github.com/jamesmurdza/gitwit
+cd gitwit
 ```
 
 Copy .env files:
@@ -52,16 +52,40 @@ brew services start postgresql
 Create a database:
 
 ```sh
-psql postgres -c "CREATE DATABASE sandbox;"
-# psql postgres -U  postgres -c "CREATE DATABASE sandbox;"
+psql postgres -c "CREATE DATABASE gitwit;"
+# psql postgres -U  postgres -c "CREATE DATABASE gitwit;"
 ```
 
-In the `/db/` directory run:
+Initialize the database schema:
 
 ```
-npm run generate
-npm run migrate
+npm run db:generate
+npm run db:migrate
 ```
+
+After making any changes to your database schema, run these commands again to update your local database. The migration files created are not committed to version control.
+
+#### Production database management
+
+<details>
+<summary>Instructions</summary>
+
+Create a `.env.production` file with your production database credentials:
+
+```
+DATABASE_URL=
+```
+
+Initialize or migrate the database:
+
+```
+npm run db:generate:prod
+npm run db:migrate:prod
+```
+
+Production migration files **are** committed to version control.
+
+</details>
 
 ### 3. Configure environment variables
 
@@ -115,7 +139,7 @@ To get a Personal Access Token (PAT):
 
 1. Go to [GitHub Settings > Developer settings > Personal access tokens](https://github.com/settings/tokens)
 2. Click "Generate new token (classic)"
-3. Give it a descriptive name (e.g., "Sandbox Testing")
+3. Give it a descriptive name (e.g., "GitWit Testing")
 4. Select the necessary scopes (typically `repo`, `user`, `read:org`)
 5. Generate the token and copy it securely
 </details>
@@ -124,6 +148,7 @@ To get a Personal Access Token (PAT):
 
 <details>
 <summary>Instructions</summary>
+
 To use the `anthropic.claude-3-7-sonnet-20250219-v1:0` model via Amazon Bedrock, follow these steps:
 
 1. **Create an AWS Account** (if you don't have one)
@@ -191,9 +216,10 @@ To use the `anthropic.claude-3-7-sonnet-20250219-v1:0` model via Amazon Bedrock,
 
 <details>
 <summary>Instructions</summary>
+
 The steps above do not include steps to setup [Dokku](https://github.com/dokku/dokku), which is required for deployments.
 
-**Note:** This is completely optional to set up if you just want to run GitWit Sandbox.
+**Note:** This is completely optional to set up if you just want to run GitWit.
 
 Setting up deployments first requires a separate domain (such as gitwit.app, which we use).
 
@@ -208,7 +234,7 @@ sudo make install
 systemctl start dokku-daemon
 ```
 
-The Sandbox platform connects to the Dokku server via SSH, using SSH keys specifically generated for this connection. The SSH key is stored on the Sandbox server, and the following environment variables are set in `.env`:
+The GitWit platform connects to the Dokku server via SSH, using SSH keys specifically generated for this connection. The SSH key is stored on the GitWit server, and the following environment variables are set in `.env`:
 
 ```bash
 DOKKU_HOST=
@@ -222,29 +248,24 @@ DOKKU_KEY=
 
 <details>
 <summary>Instructions</summary>
-Anyone can contribute a custom template for integration in Sandbox. Since Sandbox is built on E2B, there is no limitation to what langauge or runtime a Sandbox can use.
 
-Currently there are five templates:
+Templates are pre-built environments which serve as the basis for new projects. Each template is spawned from its own [E2B sandbox template](https://e2b.dev/docs/sandbox-template).
 
-- [jamesmurdza/dokku-reactjs-template](https://github.com/jamesmurdza/dokku-reactjs-template)
-- [jamesmurdza/dokku-vanillajs-template](https://github.com/jamesmurdza/dokku-vanillajs-template)
-- [jamesmurdza/dokku-nextjs-template](https://github.com/jamesmurdza/dokku-nextjs-template)
-- [jamesmurdza/dokku-streamlit-template](https://github.com/jamesmurdza/dokku-streamlit-template)
-- [omarrwd/dokku-php-template](https://github.com/omarrwd/dokku-php-template)
+Each template is a directory inside the `templates` directory. The template should have at least an `e2b.Dockerfile`, which is used by E2B to create the development environment. Optionally, a `Dockerfile` can be added which will be [used by Dokku](https://dokku.com/docs/deployment/builders/builder-management/) to create the project build when it is deployed.
 
-To create your own template, you can fork one of the above templates or start with a new blank repository. The template should have at least an `e2b.Dockerfile`, which is used by E2B to create the development environment. Optionally, a `Dockerfile` can be added which will be used to create the project build when it is deployed.
-
-To test the template, you must have an [E2B account](https://e2b.dev/) and the [E2B CLI tools](https://e2b.dev/docs/cli) installed. Then, in the Terminal, run:
+To deploy and test templates, you must have an [E2B account](https://e2b.dev/) and the [E2B CLI tools](https://e2b.dev/docs/cli) installed. Then, run:
 
 ```
 e2b auth login
 ```
 
-Then, navigate to your template directory and run the following command where **TEMPLATENAME** is the name of your template:
+To deploy a template to E2B, run:
 
 ```
-e2b template build -d e2b.Dockerfile -n TEMPLATENAME
+npm run templates:deploy [TEMPLATENAME]
 ```
+
+Leaving out the TEMPLATENAME parameter will redeploy all previously deployed templates.
 
 Finally, to test your template run:
 
@@ -259,14 +280,8 @@ Now, run the command to start your development server.
 
 To see the running server, visit the public url `https://<PORT>-xxxxxxxxxxxxxxxxxxx.e2b-staging.com`.
 
-If you've done this and it works, let us know and we'll add your template to Sandbox! Please reach out to us [on Discord](https://discord.gitwit.dev/) with any questions or to submit your working template.
+If you've done this and it works, let us know and we'll add your template to GitWit! Please reach out to us [on Discord](https://discord.gitwit.dev/) with any questions or to submit your working template.
 
-Note: In the future, we will add a way to specify the command triggered by the "Run" button (e.g. "npm run dev").
-
-For more information, see:
-
-- [Custom E2B Sandboxes](https://e2b.dev/docs/sandbox-template)
-- [Dokku Builders](https://dokku.com/docs/deployment/builders/builder-management/)
 </details>
 
 ## Running Tests
@@ -283,7 +298,6 @@ npm install
 Set up the following environment variables in the test directory:
 
 ```
-CLERK_SECRET_KEY=sk_xxxxxxxxxxxxxxxxxxxxxx
 GITHUB_PAT=ghp_xxxxxxxxxxxxxxxxxxxxxx
 CLERK_TEST_USER_ID=user_xxxxxxxxxxxxxxxxxxxxxx
 ```
@@ -304,16 +318,6 @@ The backend server and deployments server can be deployed using AWS's EC2 servic
 
 Thanks for your interest in contributing! Review this section before submitting your first pull request. If you need any help, feel free contact us [on Discord](https://discord.gitwit.dev/).
 
-### Structure
-
-| Path         | Description                                                      |
-| ------------ | ---------------------------------------------------------------- |
-| `web`        | The Next.js application for the frontend.                        |
-| `web/api`    | API routes, db, and middlewares used by the frontend.            |
-| `server`     | The Express websocket server and backend logic.                  |
-| `server/src` | Source code for backend (db, middleware, services, utils, etc.). |
-| `tests`      | Integration and unit tests for the project.                      |
-
 ### Code formatting
 
 This repository uses [Prettier](https://marketplace.cursorapi.com/items?itemName=esbenp.prettier-vscode) for code formatting, which you will be prompted to install when you open the project. The formatting rules are specified in [.prettierrc](.prettierrc).
@@ -322,10 +326,10 @@ This repository uses [Prettier](https://marketplace.cursorapi.com/items?itemName
 
 When commiting, please use the [Conventional Commits format](https://www.conventionalcommits.org/en/v1.0.0/). Your commit should be in the form `category: message` using the following categories:
 
-| Type               | Description                                                                                  |
-| ------------------ | -------------------------------------------------------------------------------------------- |
-| `feat` / `feature` | All changes that introduce completely new code or new features                               |
-| `fix`              | Changes that fix a bug (ideally with a reference to an issue if present)                     |
-| `refactor`         | Any code-related change that is not a fix nor a feature                                      |
-| `docs`             | Changing existing or creating new documentation (e.g., README, usage docs, CLI usage guides) |
-| `chore`            | All changes to the repository that do not fit into any of the above categories               |
+| Type       | Description                                                                                  |
+| ---------- | -------------------------------------------------------------------------------------------- |
+| `feat`     | All changes that introduce completely new code or new features                               |
+| `fix`      | Changes that fix a bug (ideally with a reference to an issue if present)                     |
+| `refactor` | Any code-related change that is not a fix nor a feature                                      |
+| `docs`     | Changing existing or creating new documentation (e.g., README, usage docs, CLI usage guides) |
+| `chore`    | All changes to the repository that do not fit into any of the above categories               |
