@@ -299,30 +299,89 @@ DOKKU_KEY=
 
 </details>
 
-## Creating Custom Templates
+## Templates
 
 <details>
 <summary>Instructions</summary>
 
-Templates are pre-built environments which serve as the basis for new projects. Each template is spawned from its own [E2B sandbox template](https://e2b.dev/docs/sandbox-template).
+Templates are pre-built sandbox environments for new projects, powered by the [E2B SDK](https://e2b.dev/docs/sandbox-template). Each template is a directory inside `templates/` containing a `template.ts` file that defines the environment programmatically.
 
-Each template is a directory inside the `templates` directory. The template should have at least an `e2b.Dockerfile`, which is used by E2B to create the development environment. Optionally, a `Dockerfile` can be added which will be [used by Dokku](https://dokku.com/docs/deployment/builders/builder-management/) to create the project build when it is deployed.
+### Architecture
 
-To deploy and test templates, you must have an [E2B account](https://e2b.dev/) and the [E2B CLI tools](https://e2b.dev/docs/cli) installed. Then, run:
+- **`templates/base/template.ts`** — Master template with shared dependencies (Node.js 20, git, curl, ripgrep, fzf, opencode, claude-code). Node-based templates inherit from this via `fromTemplate("gitwit-base")`.
+- **`templates/{reactjs,nextjs,vanillajs,empty}/template.ts`** — Inherit from the base template and add framework-specific setup.
+- **`templates/{php,streamlit}/template.ts`** — Use `fromDockerfile()` to parse their own `e2b.Dockerfile` since they require different base images.
+- **`templates/deploy.ts`** — Orchestrates building and deploying all templates.
+- **`templates/index.ts`** — Exports template configs (run commands, conventions) used by the web app.
+
+### Available templates
+
+| Template | Base | Description |
+|----------|------|-------------|
+| `base` | `node:20` | Master template with shared tools |
+| `reactjs` | `gitwit-base` | React + Vite + TypeScript + Tailwind |
+| `nextjs` | `gitwit-base` | Next.js with TypeScript |
+| `vanillajs` | `gitwit-base` | Plain HTML/JS with Vite |
+| `empty` | `gitwit-base` | Blank slate |
+| `streamlit` | `python:3.10` | Python Streamlit app |
+| `php` | `e2bdev/code-interpreter` | PHP with Apache + Vite |
+
+### Prerequisites
+
+To deploy and test templates, you must have an [E2B account](https://e2b.dev/) and the [E2B CLI tools](https://e2b.dev/docs/cli) installed. Then, log in:
 
 ```
 e2b auth login
 ```
 
-To deploy a template to E2B, run:
+Deployment uses the `E2B_API_KEY` from your root `.env` file. The CLI is needed for testing templates via `e2b sandbox spawn`.
 
+### Deploying templates
+
+Deploy a single template:
+
+```bash
+npm run templates:deploy -- reactjs
 ```
-npm run templates:deploy [TEMPLATENAME]
+
+Deploy all templates (base is built first automatically):
+
+```bash
+npm run templates:deploy
 ```
 
-Leaving out the TEMPLATENAME parameter will redeploy all previously deployed templates.
+**Note:** When deploying to a new E2B team, you must redeploy all templates. The base template must be deployed first since other Node-based templates inherit from it.
 
-Finally, to test your template run:
+### Creating a new template
+
+1. Create a new directory in `templates/` (e.g. `templates/mytemplate/`)
+2. Add a `template.ts` file. For Node-based templates, inherit from the base:
+
+```typescript
+import { Template } from 'e2b'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+export const template = Template({
+  fileContextPath: path.resolve(__dirname),
+  fileIgnorePatterns: [".*", "e2b*", "node_modules", "template.ts"],
+})
+  .fromTemplate("gitwit-base")
+  .setWorkdir("/home/user/project")
+  .copy(".", "/home/user/project/")
+  .runCmd("npm install")
+```
+
+3. Add the template to `templates/deploy.ts` in the `TEMPLATES` map
+4. Add a config entry in `templates/index.ts` with the run command and conventions
+5. Add the template to the `projectTemplates` array in `templates/index.ts` for the UI
+6. Deploy with `npm run templates:deploy -- mytemplate`
+
+### Testing a template
+
+To test your template, spawn a sandbox using the E2B CLI:
 
 ```
 e2b sandbox spawn TEMPLATENAME

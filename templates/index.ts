@@ -15,6 +15,8 @@ export const templateConfigs: { [key: string]: TemplateConfig } = {
       "Follow React naming conventions (PascalCase for components)",
       "Keep components small and focused",
       "Use TypeScript for type safety",
+      "OpenCode CLI is available - users can run `opencode` for AI-assisted coding in the sandbox",
+      "Claude Code CLI is available - users can run `claude` for AI-assisted coding in the sandbox",
     ],
   },
   // Next.js template config
@@ -27,6 +29,8 @@ export const templateConfigs: { [key: string]: TemplateConfig } = {
       "Keep API routes in pages/api",
       "Use CSS Modules for component styles",
       "Follow Next.js data fetching patterns",
+      "OpenCode CLI is available - users can run `opencode` for AI-assisted coding in the sandbox",
+      "Claude Code CLI is available - users can run `claude` for AI-assisted coding in the sandbox",
     ],
   },
   // Streamlit template config
@@ -39,6 +43,8 @@ export const templateConfigs: { [key: string]: TemplateConfig } = {
       "Follow PEP 8 style guide",
       "Keep dependencies in requirements.txt",
       "Use virtual environment for isolation",
+      "OpenCode CLI is available - users can run `opencode` for AI-assisted coding in the sandbox",
+      "Claude Code CLI is available - users can run `claude` for AI-assisted coding in the sandbox",
     ],
   },
   // HTML template config
@@ -51,6 +57,8 @@ export const templateConfigs: { [key: string]: TemplateConfig } = {
       "Keep CSS modular and organized",
       "Write clean, modular JavaScript",
       "Follow modern ES6+ practices",
+      "OpenCode CLI is available - users can run `opencode` for AI-assisted coding in the sandbox",
+      "Claude Code CLI is available - users can run `claude` for AI-assisted coding in the sandbox",
     ],
   },
   // PHP template config
@@ -63,6 +71,8 @@ export const templateConfigs: { [key: string]: TemplateConfig } = {
       "Use modern PHP 8+ features",
       "Organize assets with Vite",
       "Keep PHP logic separate from presentation",
+      "OpenCode CLI is available - users can run `opencode` for AI-assisted coding in the sandbox",
+      "Claude Code CLI is available - users can run `claude` for AI-assisted coding in the sandbox",
     ],
   },
   // Empty template - no files, blank slate
@@ -74,6 +84,8 @@ export const templateConfigs: { [key: string]: TemplateConfig } = {
     conventions: [
       "Start from scratch with no pre-existing files",
       "Add whatever you need - Node.js and npm are available",
+      "OpenCode CLI is available - users can run `opencode` for AI-assisted coding in the sandbox",
+      "Claude Code CLI is available - users can run `claude` for AI-assisted coding in the sandbox",
     ],
   },
 }

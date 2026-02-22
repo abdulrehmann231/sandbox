@@ -1,5 +1,6 @@
 # Ignore Git and system files
 .*
+!.streamlit
 
 # Ignore E2B files
 e2b*
