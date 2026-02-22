@@ -15,6 +15,7 @@ export const templateConfigs: { [key: string]: TemplateConfig } = {
       "Follow React naming conventions (PascalCase for components)",
       "Keep components small and focused",
       "Use TypeScript for type safety",
+      "OpenCode CLI is available - users can run `opencode` or `opencode web` for AI-assisted coding in the sandbox",
     ],
   },
   // Next.js template config
@@ -27,6 +28,7 @@ export const templateConfigs: { [key: string]: TemplateConfig } = {
       "Keep API routes in pages/api",
       "Use CSS Modules for component styles",
       "Follow Next.js data fetching patterns",
+      "OpenCode CLI is available - users can run `opencode` or `opencode web` for AI-assisted coding in the sandbox",
     ],
   },
   // Streamlit template config
@@ -51,6 +53,7 @@ export const templateConfigs: { [key: string]: TemplateConfig } = {
       "Keep CSS modular and organized",
       "Write clean, modular JavaScript",
       "Follow modern ES6+ practices",
+      "OpenCode CLI is available - users can run `opencode` or `opencode web` for AI-assisted coding in the sandbox",
     ],
   },
   // PHP template config
@@ -74,6 +77,7 @@ export const templateConfigs: { [key: string]: TemplateConfig } = {
     conventions: [
       "Start from scratch with no pre-existing files",
       "Add whatever you need - Node.js and npm are available",
+      "OpenCode CLI is available - users can run `opencode` or `opencode web` for AI-assisted coding in the sandbox",
     ],
   },
 }

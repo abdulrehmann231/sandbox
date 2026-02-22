@@ -7,11 +7,12 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "deploy": "node deploy.js"
+    "deploy": "npx tsx deploy.ts"
   },
   "exports": {
     ".": "./dist/index.js",
     "./configs": "./dist/index.js",
+    "./base": "./base",
     "./nextjs": "./nextjs",
     "./reactjs": "./reactjs",
     "./streamlit": "./streamlit",
@@ -20,6 +21,7 @@
   },
   "files": [
     "dist",
+    "base",
     "nextjs",
     "reactjs",
     "streamlit",
@@ -27,6 +29,9 @@
     "php"
   ],
   "devDependencies": {
+    "dotenv": "^17.3.1",
+    "e2b": "^2.12.1",
+    "tsx": "^4.21.0",
     "typescript": "^5.8.3"
   }
 }

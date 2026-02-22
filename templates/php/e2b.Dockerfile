@@ -1,14 +1,17 @@
 # Use the E2B base image
 FROM e2bdev/code-interpreter:latest
 
-# Install PHP and Apache
+# Install PHP, Apache, and shared tools before NodeSource repo pollutes apt
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y \
     php \
     php-cli \
     php-common \
     libapache2-mod-php \
-    apache2 && \
+    apache2 \
+    git \
+    ripgrep \
+    fzf && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -19,6 +22,8 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
 # Clear npm cache to avoid conflicts
 RUN npm cache clean --force
 
+RUN npm install -g opencode-ai@1.1.35 @anthropic-ai/claude-code@2.1.19
+
 # Initialize npm and install Vite and the PHP plugin
 WORKDIR /home/user/project
 RUN npm init -y && \
@@ -28,14 +33,7 @@ RUN npm init -y && \
 RUN a2enmod rewrite
 
 # Configure Apache for the project directory
-RUN echo '<VirtualHost *:80>\n\
-    DocumentRoot /home/user/project\n\
-    <Directory /home/user/project>\n\
-    Options Indexes FollowSymLinks\n\
-    AllowOverride All\n\
-    Require all granted\n\
-    </Directory>\n\
-    </VirtualHost>' > /etc/apache2/sites-available/000-default.conf
+COPY 000-default.conf /etc/apache2/sites-available/000-default.conf
 
 # Set proper permissions for the project directory
 RUN mkdir -p /home/user/project && \
@@ -48,7 +46,7 @@ COPY . /home/user/project
 # Expose port 80
 EXPOSE 80
 
-# Start Apache 
-CMD ["apache2-foreground"]
+# Start Apache
+CMD ["sudo", "apachectl", "-D", "FOREGROUND"]
 
 
