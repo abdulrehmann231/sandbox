@@ -22,7 +22,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
 # Clear npm cache to avoid conflicts
 RUN npm cache clean --force
 
-RUN npm install -g opencode-ai@1.1.35 @anthropic-ai/claude-code@2.1.19
+RUN npm install -g opencode-ai@latest @anthropic-ai/claude-code@latest
 
 # Initialize npm and install Vite and the PHP plugin
 WORKDIR /home/user/project

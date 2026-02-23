@@ -3,7 +3,7 @@ FROM python:3.10
 
 RUN apt-get update && apt-get install -y git curl ripgrep fzf && rm -rf /var/lib/apt/lists/*
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && apt-get install -y nodejs
-RUN npm install -g opencode-ai@1.1.35 @anthropic-ai/claude-code@2.1.19
+RUN npm install -g opencode-ai@latest @anthropic-ai/claude-code@latest
 
 # Ensure the /home/user/project directory exists
 RUN mkdir -p /home/user/project
